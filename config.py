@@ -9,7 +9,7 @@ ALLOWED_EXTENSIONS = {'csv', 'xls', 'xlsx'}
 MAX_EXECUTION_TIME = 120  # seconds
 MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50MB limit
 
-# Create necessary directories
+# directories
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(CODE_FOLDER, exist_ok=True)
 os.makedirs(RESULTS_FOLDER, exist_ok=True)

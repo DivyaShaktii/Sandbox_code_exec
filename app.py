@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse, FileResponse
 from contextlib import asynccontextmanager
 import uvicorn
 
-# Import our modules
+# Import modules
 from config import (
     UPLOAD_FOLDER, CODE_FOLDER, RESULTS_FOLDER, 
     ALLOWED_EXTENSIONS, MAX_EXECUTION_TIME, MAX_UPLOAD_SIZE
@@ -22,7 +22,7 @@ from services.cleanup_service import cleanup_old_jobs, cleanup_job_files
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Start background task when app starts
+    # background task when app starts
     cleanup_task = asyncio.create_task(cleanup_old_jobs())
     yield
 
@@ -46,7 +46,7 @@ async def upload_file(file: UploadFile = File(...)):
     
     Returns a job ID that can be used to submit code and retrieve results.
     """
-    # Check if the file is valid
+    # Checking if file is valid
     if file.filename == '':
         raise HTTPException(status_code=400, detail="No file selected")
     
@@ -56,12 +56,12 @@ async def upload_file(file: UploadFile = File(...)):
             detail=f"File type not allowed. Supported formats: {', '.join(ALLOWED_EXTENSIONS)}"
         )
     
-    # Secure the filename and save the file
+    # 
     filename = os.path.basename(file.filename)
     job_id = create_job(filename, "")  # Create job first to get ID
     file_path = os.path.join(UPLOAD_FOLDER, f"{job_id}_{filename}")
     
-    # Save uploaded file
+    # save uploaded file
     content = await file.read()
     if len(content) > MAX_UPLOAD_SIZE:
         delete_job(job_id)
@@ -87,7 +87,7 @@ async def submit_code(
     background_tasks: BackgroundTasks
 ):
     """
-    Submit Python code to process the previously uploaded file.
+     Python code to process the previously uploaded file.
     
     The code will be executed in a sandboxed Docker container with access to the uploaded file.
     """
@@ -96,16 +96,15 @@ async def submit_code(
         raise HTTPException(status_code=404, detail="Job not found")
     
     try:
-        # Create and save the code file
         code_path = os.path.join(CODE_FOLDER, f"{job_id}_process.py")
         with open(code_path, 'w') as code_file:
             code_file.write(code_submission.code)
         
-        # Create results directory
+        
         result_path = os.path.join(RESULTS_FOLDER, job_id)
         os.makedirs(result_path, exist_ok=True)
         
-        # Update job status
+        
         job_status[job_id]['status'] = 'processing'
         job_status[job_id]['code_path'] = code_path
         job_status[job_id]['result_path'] = result_path
@@ -132,7 +131,7 @@ async def get_status(job_id: str):
     """
     Get the current status of a file processing job.
     """
-    # Check if the job exists
+
     if job_id not in job_status:
         raise HTTPException(status_code=404, detail="Job not found")
     
@@ -171,7 +170,7 @@ async def get_results(
     if not result_files:
         raise HTTPException(status_code=404, detail="No results found")
     
-    # Return based on requested format
+    # Return based on requested for format
     if output_format == 'csv':
         # Find CSV files
         csv_files = [f for f in result_files if f.endswith('.csv')]
@@ -214,7 +213,7 @@ async def cleanup_job(job_id: str):
     if job_id not in job_status:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    # Clean up files
+    # files cleanup
     try:
         success = await cleanup_job_files(job_id)
         if success:

@@ -29,9 +29,9 @@ async def execute_code_in_sandbox(job_id: str, file_path: str, code_path: str, r
             '-v', f"{file_path}:/data/input_file{file_ext}:ro",
             '-v', f"{code_path}:/data/process.py:ro",
             '-v', f"{result_path}:/data/output:rw",
-            # Use minimal Python image
+            # Using minimal Python image , just pandas installed
             'python-sandbox',
-            # Run with restricted permissions
+            # Running with restricted permissions
             'sh', '-c', "cd /data && python -m process"
         ]
         
@@ -39,11 +39,11 @@ async def execute_code_in_sandbox(job_id: str, file_path: str, code_path: str, r
         print(f"Executing Docker command: {' '.join(docker_cmd)}")
         update_job_status(job_id, 'running', docker_cmd=' '.join(docker_cmd))
         
-        # regular subprocess on Windows instead of asyncio.create_subprocess_exec
+        # regular subprocess for Windows instead of asyncio.create_subprocess_exec
         if os.name == 'nt':
             await _execute_windows(job_id, docker_cmd, max_execution_time)
         else:
-            # Using asyncio on non-Windows platforms
+            # Using asyncio for non-Windows platforms
             await _execute_unix(job_id, docker_cmd, max_execution_time)
             
     except Exception as e:
@@ -133,18 +133,16 @@ async def _execute_unix(job_id: str, docker_cmd: list, max_execution_time: int):
 def get_code_template():
     """Return a template for processing files"""
     return """
-# This is a template for processing your data file
+# This is a template for processing data file
 # The input file is available as "input_file.csv" (or .xlsx/.xls)
-# You should output your results to the current directory
 
 import pandas as pd
 import json
 
-# Determine file type and read accordingly
 import os
 df = pd.read_csv('/data/input_file.csv')
 
-# Process your data here
+# Code to process data
 # Example: Calculate summary statistics
 result = {
     'row_count': len(df),
@@ -155,7 +153,6 @@ result = {
 print("result", result)
 df.columns = [col.upper() for col in df.columns]
 
-# Save results
 
 #  Save as CSV
 df.to_csv('/data/output/processed_data.csv', index=False)
