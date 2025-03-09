@@ -1,2 +1,5 @@
-# Sandbox_code_exec
-LLM generated Code Execution in Sandbox
+### build the docker first
+`docker build -t python-sandbox .`
+
+
+### run the file `app.py`
